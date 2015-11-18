@@ -1,3 +1,4 @@
+# -*- coding: cp936 -*-
 # 6.00 Problem Set 3A Solutions
 #
 # The 6.00 Word Game
@@ -5,16 +6,22 @@
 #
 #
 
+
 import random
 import string
+import copy
 
 VOWELS = 'aeiou'
 CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
 HAND_SIZE = 7
 
 SCRABBLE_LETTER_VALUES = {
-    'a': 1, 'b': 3, 'c': 3, 'd': 2, 'e': 1, 'f': 4, 'g': 2, 'h': 4, 'i': 1, 'j': 8, 'k': 5, 'l': 1, 'm': 3, 'n': 1, 'o': 1, 'p': 3, 'q': 10, 'r': 1, 's': 1, 't': 1, 'u': 1, 'v': 4, 'w': 4, 'x': 8, 'y': 4, 'z': 10
+    'a': 1, 'b': 3, 'c': 3, 'd': 2, 'e': 1, 'f': 4,
+    'g': 2, 'h': 4, 'i': 1, 'j': 8, 'k': 5, 'l': 1,
+    'm': 3, 'n': 1, 'o': 1, 'p': 3, 'q': 10, 'r': 1,
+    's': 1, 't': 1, 'u': 1, 'v': 4, 'w': 4, 'x': 8, 'y': 4, 'z': 10
 }
+
 
 # -----------------------------------
 # Helper code
@@ -34,10 +41,14 @@ def load_words():
     inFile = open(WORDLIST_FILENAME, 'r', 0)
     # wordlist: list of strings
     wordlist = []
+   
     for line in inFile:
         wordlist.append(line.strip().lower())
     print "  ", len(wordlist), "words loaded."
     return wordlist
+
+
+
 
 def get_frequency_dict(sequence):
     """
@@ -77,7 +88,15 @@ def get_word_score(word, n):
     returns: int >= 0
     """
     # TO DO...
-    
+    len_word = len(word)
+    pts = 0
+    if len_word == n:
+        pts = 50
+
+    for letters in word:
+        pts = pts + len_word*SCRABBLE_LETTER_VALUES[letters]
+    return pts
+
 #
 # Make sure you understand how this function works and what it does!
 #
@@ -146,6 +165,15 @@ def update_hand(hand, word):
     returns: dictionary (string -> int)
     """
     # TO DO ...
+    residual_hand = {}
+
+    freq_word = get_frequency_dict( word )
+
+    for key in hand.keys():
+        residual_hand[key] = hand[key] - freq_word.get(key,0)
+    for value in residual_hand.values():
+        assert value>=0
+    return residual_hand
 
 #
 # Problem #3: Test word validity
@@ -161,6 +189,19 @@ def is_valid_word(word, hand, word_list):
     word_list: list of lowercase strings
     """
     # TO DO...
+    flag = False
+    for item in word_list:
+        if word == item:
+            flag = True
+    if flag == False:
+        return flag
+
+    freq_word = get_frequency_dict( word )
+    for key in freq_word.keys():
+        if freq_word[key] > hand.get(key,0):
+            flag = False
+            break
+    return flag
 
 def calculate_handlen(hand):
     handlen = 0
@@ -200,6 +241,32 @@ def play_hand(hand, word_list):
       
     """
     # TO DO ...
+    flag = False
+    total_pts = 0
+    for value in hand.values():
+        if value!=0:
+            flag = True
+    while flag:
+        print 'Current Hand:',
+        display_hand(hand)
+        word_in = raw_input( 'Enter word, or a "." to indicate that you are finished:')
+
+        if word_in == '.':
+            print 'Total score:', str(total_pts) , 'points.'
+            return
+        else:
+            while not is_valid_word(word_in, hand, word_list):
+                print 'Invalid word, please input another word!'
+                word_in = raw_input( 'Enter another word, or a "." to indicate that you are finished:')
+                if word_in == '.':
+                    print 'Total score:', total_pts , 'points.'
+                    return
+
+            total_pts = total_pts + get_word_score( word_in, HAND_SIZE )
+            print word_in, 'earned', str(get_word_score( word_in, HAND_SIZE )), 'points.',
+            print 'Total£º' + str(total_pts) + 'points'
+            hand = update_hand(hand, word_in)
+    return
 
 #
 # Problem #5: Playing a game
@@ -221,6 +288,25 @@ def play_game(word_list):
     * If the user inputs anything else, ask them again.
     """
     # TO DO...
+    hand = deal_hand( HAND_SIZE )
+    hand_old = copy.copy(  hand )
+    flag = raw_input("Please input an order,!")
+
+    while flag !='e':
+        while not (flag =='n' or flag == 'r'):
+            flag = raw_input( 'Please input an order again! :' )
+            if flag == 'e':
+                return
+        if flag == 'n':
+            hand = deal_hand( HAND_SIZE )
+            hand_old = copy.copy( hand )
+            play_hand( hand , word_list )
+        if flag == 'r':
+            play_hand( hand_old , word_list )           
+        flag = raw_input("Please input an order,!")
+        if flag == 'e':
+            return
+    return
 
 #
 # Build data structures used for entire session and play game
@@ -228,3 +314,4 @@ def play_game(word_list):
 if __name__ == '__main__':
     word_list = load_words()
     play_game(word_list)
+

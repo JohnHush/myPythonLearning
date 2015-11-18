@@ -1,3 +1,4 @@
+
 from ps3a import *
 
 #
@@ -11,6 +12,7 @@ def test_deal_hand():
     # (A)
     # Basic test, see if the right kind of dictionary is
     # being returned.
+    
     hand = deal_hand(HAND_SIZE)
     if not type(hand) is dict:
         print "FAILURE: test_deal_hand()"

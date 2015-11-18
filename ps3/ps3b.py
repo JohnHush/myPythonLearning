@@ -1,3 +1,4 @@
+
 from ps3a import *
 import time
 from perm import *
@@ -17,6 +18,19 @@ def comp_choose_word(hand, word_list):
     word_list: list (string)
     """
     # TO DO...
+    score = 0
+    words_perms = []
+    wordOut = None
+    for length in xrange( 1 , HAND_SIZE+1 ):
+        words_perms.extend( get_perms( hand , length ) )
+
+    for items in words_perms:
+        if items in word_list:
+            if score < get_word_score( items , HAND_SIZE ):
+                score = get_word_score( items , HAND_SIZE )
+                wordOut = items
+
+    return wordOut
 
 #
 # Problem #6B: Computer plays a hand
@@ -55,6 +69,7 @@ def play_game(word_list):
     * If the user inputs 'e', exit the game.
     * If the user inputs anything else, ask them again.
 
+
     2) Ask the user to input a 'u' or a 'c'.
     * If the user inputs 'u', let the user play the game as before using play_hand.
     * If the user inputs 'c', let the computer play the game using comp_play_hand (created above).
@@ -72,5 +87,10 @@ def play_game(word_list):
 if __name__ == '__main__':
     word_list = load_words()
     play_game(word_list)
+    hand = deal_hand(HAND_SIZE)
+    
+    print comp_choose_word(hand, word_list)
+    print hand
 
+   
     
