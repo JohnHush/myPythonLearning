@@ -61,3 +61,4 @@ if __name__=="__main__":
 
     print "testing stuff for 6.00"
     print len(get_perms({"a":2, "b":3, "c":1}, 3))
+

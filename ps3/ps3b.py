@@ -56,6 +56,26 @@ def comp_play_hand(hand, word_list):
     """
     # TO DO ...    
     
+    total_score = 0
+    count =0
+    print "Current hand is :",
+    display_hand( hand )
+
+    word_in = comp_choose_word( hand , word_list )
+
+    while( word_in != None ):
+        count = count+1
+        total_score = total_score + get_word_score( word_in , HAND_SIZE )
+        hand = update_hand( hand , word_in )
+        print " the chosen word is:" , word_in
+        print " the score of the chosen word is:", str( get_word_score( word_in , HAND_SIZE ))
+        print " the remaining hand is:",
+        display_hand( hand )
+        print " the total score is:", str( total_score )
+        word_in = comp_choose_word( hand , word_list )
+    if count==0:
+        print " the total score is :", 0
+
 #
 # Problem #6C: Playing a game
 #
@@ -88,9 +108,11 @@ if __name__ == '__main__':
     word_list = load_words()
     play_game(word_list)
     hand = deal_hand(HAND_SIZE)
+
+    comp_play_hand( hand , word_list )
     
-    print comp_choose_word(hand, word_list)
-    print hand
+#    print comp_choose_word(hand, word_list)
+#    print hand
 
    
     
