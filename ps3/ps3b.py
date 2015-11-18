@@ -100,16 +100,68 @@ def play_game(word_list):
     word_list: list (string)
     """
     # TO DO...
+    count = 0
+    print(
+    '''
+    * If the user inputs 'n', play a new (random) hand.
+    * If the user inputs 'r', play the last hand again.
+    * If the user inputs 'e', exit the game.
+    * If the user inputs anything else, ask them again.
+    ''')
+    hand = deal_hand( HAND_SIZE );
+    hand_old = hand
+
+    flag = raw_input( "Please input an order!!" )
+
+    while flag != "e":
+        while not ( flag=='n' or flag=='r' ):
+            print "Please input letter 'n' ,  'r'  or  'e' "
+            flag = raw_input( "Please input an order again!!!:" )
+            if flag == 'e':
+                return
+        count = count +1 
+        print(
+            '''
+            If the user inputs 'u', let the user play the game as before using play_hand.
+            If the user inputs 'c', let the computer play the game using comp_play_hand (created above).
+            If the user inputs anything else, ask them again.
+            ''')
+        flag2 = raw_input( "Please input a 'u' or 'c' " )
+        while not ( flag2=='u' or flag2=='c' ):
+            print "Please input flag2 again!:"
+            flag2 = raw_input()
+
+        if flag == 'n':
+            hand = deal_hand( HAND_SIZE )
+            hand_old = hand
+            if flag2 == 'u':
+                play_hand( hand , word_list )
+            if flag2 == 'c':
+                comp_play_hand( hand , word_list )
+        if flag == 'r':
+            if flag2 == 'u':
+                play_hand( hand_old , word_list )
+            if flag2 == 'c':
+                comp_play_hand( hand_old , word_list )
+        flag = raw_input( "Please input an order!!" )
+        if flag == 'e':
+            return
+
+    if count == 0: 
+        print "Quit the game without even one hand!"
+    return
+
         
 #
 # Build data structures used for entire session and play game
 #
 if __name__ == '__main__':
     word_list = load_words()
-    play_game(word_list)
     hand = deal_hand(HAND_SIZE)
+    play_game(word_list)
 
-    comp_play_hand( hand , word_list )
+#    comp_play_hand( hand , word_list )
+#    play_game( word_list )
     
 #    print comp_choose_word(hand, word_list)
 #    print hand
