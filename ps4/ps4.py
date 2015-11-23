@@ -122,6 +122,30 @@ def build_coder(shift):
     """
     ### TODO.
 
+    assert type(shift) == int and shift <27 and shift >-27
+
+    std_lower  = string.lowercase + ' '
+    std_upper  = string.uppercase + ' '
+    lowershift = string.lowercase + ' '
+    uppershift = string.uppercase + ' '
+
+    if shift < 0:
+        shift = 27 + shift
+
+    lowershift = lowershift[shift:] + lowershift[:shift]
+    uppershift = uppershift[shift:] + uppershift[:shift]
+
+    dct = {}
+
+    for index, value in enumerate(list(std_lower)):
+        dct[value] = lowershift[index]
+
+    for index, value in enumerate(list(std_upper)):
+        if value != ' ':
+            dct[value] = uppershift[index]
+    return dct
+
+
 def build_encoder(shift):
     """
     Returns a dict that can be used to encode a plain text. For example, you
@@ -150,6 +174,8 @@ def build_encoder(shift):
     HINT : Use build_coder.
     """
     ### TODO.
+
+    return build_coder( shift )
 
 def build_decoder(shift):
     """
@@ -180,6 +206,7 @@ def build_decoder(shift):
     HINT : Use build_coder.
     """
     ### TODO.
+    return build_coder( -shift )
  
 
 def apply_coder(text, coder):
@@ -197,7 +224,14 @@ def apply_coder(text, coder):
     'Hello, world!'
     """
     ### TODO.
-  
+
+    string = ''
+    for c in text:
+        if c in coder.keys():
+            string = string + coder[c]
+        else:
+            string = string + c
+    return string
 
 def apply_shift(text, shift):
     """
@@ -217,7 +251,16 @@ def apply_shift(text, shift):
     'Apq hq hiham a.'
     """
     ### TODO.
-   
+    coder = build_coder( shift )
+    text_out = ''
+    for c in text:
+        if c in coder.keys():
+            text_out += coder[c]
+        else:
+            text_out += c
+
+    return text_out
+
 #
 # Problem 2: Codebreaking.
 #
@@ -239,11 +282,28 @@ def find_best_shift(wordlist, text):
     """
     ### TODO
 
-    countNum = 0
     bestShift = 0
+    bestCount = 0
     shift = 0
 
     while shift <27:
+        countNum = 0
+        shift_text_mod = ''
+        coder = build_decoder( shift )
+        shift_text = apply_coder( text , coder )
+        for c in shift_text:
+            if c not in coder.keys():
+                shift_text_mod += ' '
+            else:
+                shift_text_mod += c
+        for word in shift_text_mod.split(' '):
+            if is_word( wordlist , word ):
+                countNum += 1
+        if countNum>bestCount:
+            countNum = bestCount
+            bestShift = shift
+        shift += 1
+    return bestShift
    
 #
 # Problem 3: Multi-level encryption.
