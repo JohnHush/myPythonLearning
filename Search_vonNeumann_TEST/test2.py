@@ -36,8 +36,7 @@ def selSort(L):
         L[i] = L[minIndx]
         L[minIndx] = temp
         print 'Partially sorted list =', L
-selSort([1,3,5,99,33,12])
-print selSort.__name__
+
 def merge(left, right, lt):
     """Assumes left and right are sorted lists.
      lt defines an ordering on the elements of the lists.
