@@ -304,7 +304,7 @@ def find_best_shift(wordlist, text):
             bestShift = shift
         shift += 1
     return bestShift
-   
+
 #
 # Problem 3: Multi-level encryption.
 #
@@ -325,11 +325,45 @@ def apply_shifts(text, shifts):
     'JufYkaolfapxQdrnzmasmRyrpfdvpmEurrb?'
     """
     ### TODO.
+
+    for ( location, shift ) in shifts:
+        text = text[:location] + apply_shift( text[location:] , shift )
+    return text
  
 #
 # Problem 4: Multi-level decryption.
 #
 
+
+def find_best_shifts_rec(wordlist, text, start):
+    """
+    Given a scrambled string and a starting position from which
+    to decode, returns a shift key that will decode the text to
+    words in wordlist, or None if there is no such key.
+
+    Hint: You will find this function much easier to implement
+    if you use recursion.
+
+    wordlist: list of words
+    text: scambled text to try to find the words for
+    start: where to start looking at shifts
+    returns: list of tuples.  each tuple is (position in text, amount of shift)
+    """
+    ### TODO.
+
+    shift = 0
+
+    while shift<27:
+        if ' ' not in text[start:]:
+            if is_word( wordlist , text[start:] ):
+                return [(start , shift)]
+        else:
+            if is_word( wordlist , text[start:].split(' ')[0] ):
+                if find_best_shifts_rec( wordlist , text , start+1 +len(text[start:].split(' ')[0]) )!=None:
+                    return [( start , shift )] + find_best_shifts_rec( wordlist , text , start+1 +len(text[start:].split(' ')[0]) )
+        shift += 1
+        text = apply_shift( text , 1 )
+    return None
 
 def find_best_shifts(wordlist, text):
     """
@@ -359,23 +393,17 @@ def find_best_shifts(wordlist, text):
     >>> print apply_shifts(s, shifts)
     Do Androids Dream of Electric Sheep?
     """
-
-def find_best_shifts_rec(wordlist, text, start):
-    """
-    Given a scrambled string and a starting position from which
-    to decode, returns a shift key that will decode the text to
-    words in wordlist, or None if there is no such key.
-
-    Hint: You will find this function much easier to implement
-    if you use recursion.
-
-    wordlist: list of words
-    text: scambled text to try to find the words for
-    start: where to start looking at shifts
-    returns: list of tuples.  each tuple is (position in text, amount of shift)
-    """
-    ### TODO.
-
+    lst2 = []
+    lst = find_best_shifts_rec( wordlist , text , 0 )
+    if find_best_shifts_rec( wordlist , text , 0 ) == None:
+        print "'Can't find any decoder to decode the text!"
+    else:
+        for i in lst:
+            if i[1] !=0:
+                lst2.append(i)
+        return lst2
+s = 'eqorqukvqtbmultiform wyy ion'
+print find_best_shifts(wordlist, s)
 
 def decrypt_fable():
      """
@@ -388,9 +416,6 @@ def decrypt_fable():
     returns: string - fable in plain text
     """
     ### TODO.
-
-
-
     
 #What is the moral of the story?
 #
