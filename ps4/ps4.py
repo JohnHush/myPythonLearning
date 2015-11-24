@@ -27,6 +27,7 @@ def load_words():
     print "  ", len(wordlist), "words loaded."
     return wordlist
 
+
 wordlist = load_words()
 
 def is_word(wordlist, word):
@@ -402,11 +403,9 @@ def find_best_shifts(wordlist, text):
             if i[1] !=0:
                 lst2.append(i)
         return lst2
-s = 'eqorqukvqtbmultiform wyy ion'
-print find_best_shifts(wordlist, s)
 
 def decrypt_fable():
-     """
+    """
     Using the methods you created in this problem set,
     decrypt the fable given by the function get_fable_string().
     Once you decrypt the message, be sure to include as a comment
@@ -415,7 +414,28 @@ def decrypt_fable():
 
     returns: string - fable in plain text
     """
-    ### TODO.
+
+    decoded_string = ''
+    fable = get_fable_string()
+    while fable!='':
+        sub_string = ''
+        total_shift = 0
+        for c in fable:
+            sub_string += c
+            if c not in string.lowercase + ' ' + string.uppercase:
+                break
+        print sub_string
+        shifts = find_best_shifts( wordlist , sub_string )
+        decoded_string += apply_shifts( sub_string , shifts )
+        for i in shifts:
+            total_shift += i[1]
+        fable = apply_shift( fable[len(sub_string):] , total_shift )
+        print decoded_string
+
+    return decoded_string
+#    return get_fable_string()
+if __name__ == '__main__':
+    print decrypt_fable()
     
 #What is the moral of the story?
 #
