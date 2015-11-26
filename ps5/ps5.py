@@ -59,6 +59,8 @@ class NewsStory( object ):
         return self.title
     def get_subject( self ):
         return self.subject
+    def get_summary( self ):
+        return self.summary
     def get_link( self ):
         return self.link
 
@@ -81,24 +83,71 @@ class Trigger(object):
 
 # TODO: WordTrigger
 class WordTrigger( Trigger ):
+    def __init__( self , word ):
+        self.word = word.lower()
+    def is_word_in( self , text ):
+        if type( text ) != str:
+            raise TypeError
+        else:
+            flag = False
+            for seperator in string.punctuation:
+                text = text.replace( seperator , ' ' )
+            for value in (text.lower()).split():
+                if value == self.word:
+                    flag = True
+                    break
+            return flag
 
 # TODO: TitleTrigger
+class TitleTrigger( WordTrigger ):
+    def evaluate( self , story ):
+        return self.is_word_in( story.title )
 # TODO: SubjectTrigger
+class SummaryTrigger( WordTrigger ):
+    def evaluate( self , story ):
+        return self.is_word_in( story.summary )
 # TODO: SummaryTrigger
+class SubjectTrigger( WordTrigger ):
+    def evaluate( self , story ):
+        return self.is_word_in( story.subject )
 
 
 # Composite Triggers
 # Problems 6-8
 
 # TODO: NotTrigger
+class NotTrigger( Trigger ):
+    def __init__( self , TriggerName ):
+        self.TriggerName = TriggerName
+    def evaluate( self , story ):
+        return not self.TriggerName.evaluate( story )
 # TODO: AndTrigger
+class AndTrigger( Trigger ):
+    def __init__( self , TriggerName1 , TriggerName2 ):
+        self.TriggerName1 = TriggerName1
+        self.TriggerName2 = TriggerName2
+    def evaluate( self , story ):
+        return self.TriggerName1.evaluate( story ) and self.TriggerName2.evaluate( story )
 # TODO: OrTrigger
+class OrTrigger( Trigger ):
+    def __init__( self , TriggerName1 , TriggerName2 ):
+        self.TriggerName1 = TriggerName1
+        self.TriggerName2 = TriggerName2
+    def evaluate( self , story ):
+        return self.TriggerName1.evaluate( story ) or self.TriggerName2.evaluate( story )
 
 
 # Phrase Trigger
 # Question 9
 
 # TODO: PhraseTrigger
+class PhraseTrigger( Trigger ):
+    def __init__( self , phrase ):
+        self.phrase = phrase
+    def evaluate( self , story ):
+        return self.phrase in story.subject or \
+                self.phrase in story.title or \
+                self.phrase in story.summary
 
 
 #======================
@@ -115,6 +164,15 @@ def filter_stories(stories, triggerlist):
     # TODO: Problem 10
     # This is a placeholder (we're just returning all the stories, with no filtering) 
     # Feel free to change this line!
+    for index in xrange(len(stories)):
+        flag = False
+        for trigger in triggerlist:
+            if trigger.evaluate(stories[index]):
+                flag = True
+        if flag == True:
+            stories[index] = ''
+    while '' in stories:
+        stories.remove('')
     return stories
 
 #======================
@@ -143,6 +201,50 @@ def readTriggerConfig(filename):
     # 'lines' has a list of lines you need to parse
     # Build a set of triggers from it and
     # return the appropriate ones
+    TriggerList = []
+    TriggerDict = {}
+    for line in lines:
+        listLine = line.split(' ')
+        if listLine[0] != 'ADD':
+            if listLine[1] == 'SUBJECT':
+                TriggerDict[listLine[0]] = TitleTrigger( listLine[2] )
+            elif listLine[1] == 'SUMMARY':
+                TriggerDict[listLine[0]] = SummaryTrigger( listLine[2] )
+            elif listLine[1] == 'TITLE':
+                TriggerDict[listLine[0]] = TitleTrigger( listLine[2] )
+            elif listLine[1] == 'PHRASE':
+                phrase = ' '.join(listLine[2:])
+                TriggerDict[listLine[0]] = PhraseTrigger( phrase )
+            elif listLine[1] == 'AND':
+                if listLine[2] in TriggerDict and listLine[3] in TriggerDict:
+                    TriggerDict[listLine[0]] = AndTrigger( TriggerDict[listLine[2]], TriggerDict[listLine[3]] )
+                else:
+                    print "don't match any existed trigger"
+                    raise TypeError
+            elif listLine[1] == 'OR':
+                if listLine[2] in TriggerDict and listLine[3] in TriggerDict:
+                    TriggerDict[listLine[0]] = OrTrigger( TriggerDict[listLine[2]], TriggerDict[listLine[3]] )
+                else:
+                    print "don't match any existed trigger"
+                    raise TypeError
+            elif listLine[1] == 'NOT':
+                if listLine[2] in TriggerDict:
+                    TriggerDict[listLine[0]] = NotTrigger( TriggerDict[listLine[2]] )
+                else:
+                    print 'type error in line NOT '
+                    raise TypeError
+            else:
+                raise TypeError
+        else:
+            for trigger in listLine:
+                if trigger == 'ADD':
+                    continue
+                if trigger in TriggerDict:
+                    TriggerList.append( TriggerDict[trigger] )
+                else:
+                    continue
+
+    return TriggerList
     
 import thread
 
@@ -157,7 +259,7 @@ def main_thread(p):
     
     # TODO: Problem 11
     # After implementing readTriggerConfig, uncomment this line 
-    #triggerlist = readTriggerConfig("triggers.txt")
+    triggerlist = readTriggerConfig("triggers.txt")
 
     guidShown = []
     
