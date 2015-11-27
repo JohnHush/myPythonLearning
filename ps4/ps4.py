@@ -27,6 +27,7 @@ def load_words():
     print "  ", len(wordlist), "words loaded."
     return wordlist
 
+
 wordlist = load_words()
 
 def is_word(wordlist, word):
@@ -122,6 +123,30 @@ def build_coder(shift):
     """
     ### TODO.
 
+    assert type(shift) == int and shift <27 and shift >-27
+
+    std_lower  = string.lowercase + ' '
+    std_upper  = string.uppercase + ' '
+    lowershift = string.lowercase + ' '
+    uppershift = string.uppercase + ' '
+
+    if shift < 0:
+        shift = 27 + shift
+
+    lowershift = lowershift[shift:] + lowershift[:shift]
+    uppershift = uppershift[shift:] + uppershift[:shift]
+
+    dct = {}
+
+    for index, value in enumerate(list(std_lower)):
+        dct[value] = lowershift[index]
+
+    for index, value in enumerate(list(std_upper)):
+        if value != ' ':
+            dct[value] = uppershift[index]
+    return dct
+
+
 def build_encoder(shift):
     """
     Returns a dict that can be used to encode a plain text. For example, you
@@ -150,6 +175,8 @@ def build_encoder(shift):
     HINT : Use build_coder.
     """
     ### TODO.
+
+    return build_coder( shift )
 
 def build_decoder(shift):
     """
@@ -180,6 +207,7 @@ def build_decoder(shift):
     HINT : Use build_coder.
     """
     ### TODO.
+    return build_coder( -shift )
  
 
 def apply_coder(text, coder):
@@ -197,7 +225,14 @@ def apply_coder(text, coder):
     'Hello, world!'
     """
     ### TODO.
-  
+
+    string = ''
+    for c in text:
+        if c in coder.keys():
+            string = string + coder[c]
+        else:
+            string = string + c
+    return string
 
 def apply_shift(text, shift):
     """
@@ -217,7 +252,16 @@ def apply_shift(text, shift):
     'Apq hq hiham a.'
     """
     ### TODO.
-   
+    coder = build_coder( shift )
+    text_out = ''
+    for c in text:
+        if c in coder.keys():
+            text_out += coder[c]
+        else:
+            text_out += c
+
+    return text_out
+
 #
 # Problem 2: Codebreaking.
 #
@@ -239,12 +283,29 @@ def find_best_shift(wordlist, text):
     """
     ### TODO
 
-    countNum = 0
     bestShift = 0
+    bestCount = 0
     shift = 0
 
     while shift <27:
-   
+        countNum = 0
+        shift_text_mod = ''
+        coder = build_decoder( shift )
+        shift_text = apply_coder( text , coder )
+        for c in shift_text:
+            if c not in coder.keys():
+                shift_text_mod += ' '
+            else:
+                shift_text_mod += c
+        for word in shift_text_mod.split(' '):
+            if is_word( wordlist , word ):
+                countNum += 1
+        if countNum>bestCount:
+            countNum = bestCount
+            bestShift = shift
+        shift += 1
+    return bestShift
+
 #
 # Problem 3: Multi-level encryption.
 #
@@ -265,11 +326,45 @@ def apply_shifts(text, shifts):
     'JufYkaolfapxQdrnzmasmRyrpfdvpmEurrb?'
     """
     ### TODO.
+
+    for ( location, shift ) in shifts:
+        text = text[:location] + apply_shift( text[location:] , shift )
+    return text
  
 #
 # Problem 4: Multi-level decryption.
 #
 
+
+def find_best_shifts_rec(wordlist, text, start):
+    """
+    Given a scrambled string and a starting position from which
+    to decode, returns a shift key that will decode the text to
+    words in wordlist, or None if there is no such key.
+
+    Hint: You will find this function much easier to implement
+    if you use recursion.
+
+    wordlist: list of words
+    text: scambled text to try to find the words for
+    start: where to start looking at shifts
+    returns: list of tuples.  each tuple is (position in text, amount of shift)
+    """
+    ### TODO.
+
+    shift = 0
+
+    while shift<27:
+        if ' ' not in text[start:]:
+            if is_word( wordlist , text[start:] ):
+                return [(start , shift)]
+        else:
+            if is_word( wordlist , text[start:].split(' ')[0] ):
+                if find_best_shifts_rec( wordlist , text , start+1 +len(text[start:].split(' ')[0]) )!=None:
+                    return [( start , shift )] + find_best_shifts_rec( wordlist , text , start+1 +len(text[start:].split(' ')[0]) )
+        shift += 1
+        text = apply_shift( text , 1 )
+    return None
 
 def find_best_shifts(wordlist, text):
     """
@@ -299,26 +394,18 @@ def find_best_shifts(wordlist, text):
     >>> print apply_shifts(s, shifts)
     Do Androids Dream of Electric Sheep?
     """
-
-def find_best_shifts_rec(wordlist, text, start):
-    """
-    Given a scrambled string and a starting position from which
-    to decode, returns a shift key that will decode the text to
-    words in wordlist, or None if there is no such key.
-
-    Hint: You will find this function much easier to implement
-    if you use recursion.
-
-    wordlist: list of words
-    text: scambled text to try to find the words for
-    start: where to start looking at shifts
-    returns: list of tuples.  each tuple is (position in text, amount of shift)
-    """
-    ### TODO.
-
+    lst2 = []
+    lst = find_best_shifts_rec( wordlist , text , 0 )
+    if find_best_shifts_rec( wordlist , text , 0 ) == None:
+        print "'Can't find any decoder to decode the text!"
+    else:
+        for i in lst:
+            if i[1] !=0:
+                lst2.append(i)
+        return lst2
 
 def decrypt_fable():
-     """
+    """
     Using the methods you created in this problem set,
     decrypt the fable given by the function get_fable_string().
     Once you decrypt the message, be sure to include as a comment
@@ -327,10 +414,28 @@ def decrypt_fable():
 
     returns: string - fable in plain text
     """
-    ### TODO.
 
+    decoded_string = ''
+    fable = get_fable_string()
+    while fable!='':
+        sub_string = ''
+        total_shift = 0
+        for c in fable:
+            sub_string += c
+            if c not in string.lowercase + ' ' + string.uppercase:
+                break
+        print sub_string
+        shifts = find_best_shifts( wordlist , sub_string )
+        decoded_string += apply_shifts( sub_string , shifts )
+        for i in shifts:
+            total_shift += i[1]
+        fable = apply_shift( fable[len(sub_string):] , total_shift )
+        print decoded_string
 
-
+    return decoded_string
+#    return get_fable_string()
+if __name__ == '__main__':
+    print decrypt_fable()
     
 #What is the moral of the story?
 #
