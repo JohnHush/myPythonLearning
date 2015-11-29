@@ -41,6 +41,8 @@ class SimpleVirus(object):
         """
 
         # TODO
+        self.maxBirthProb = maxBirthProb
+        self.clearProb    = clearProb
 
     def doesClear(self):
 
@@ -51,6 +53,10 @@ class SimpleVirus(object):
         """
 
         # TODO
+        if random.random() < self.clearProb:
+            return True
+
+        return False
 
     
     def reproduce(self, popDensity):
@@ -75,6 +81,10 @@ class SimpleVirus(object):
         """
 
         # TODO
+        if random.random() < self.maxBirthProb * ( 1 - popDensity ):
+            return SimpleVirus( self.maxBirthProb , self.clearProb )
+        else:
+            raise NoChildException
 
 
 
@@ -97,9 +107,12 @@ class SimplePatient(object):
 
         maxPop: the  maximum virus population for this patient (an integer)
         """
+        self.viruses = viruses
+        self.maxPop  = maxPop
 
         # TODO
-
+    def setVirusesList( self , viruses ):
+        self.viruses = viruses
 
     def getTotalPop(self):
 
@@ -109,6 +122,7 @@ class SimplePatient(object):
         """
 
         # TODO        
+        return len( self.viruses )
 
 
     def update(self):
@@ -130,7 +144,23 @@ class SimplePatient(object):
 
         # TODO
 
+        new_viruses_list = []
+        for viruse in self.viruses:
+            if not viruse.doesClear():
+                new_viruses_list.append( viruse )
 
+        self.setVirusesList( new_viruses_list )
+
+        pop_density = float(self.getTotalPop())/self.maxPop
+       
+        tmplist = []
+        for viruse in self.viruses:
+            try:
+                tmplist.append( viruse.reproduce( pop_density ) )
+            except NoChildException:
+                pass
+        self.viruses.extend( tmplist )
+        return len( self.viruses )
 
 #
 # PROBLEM 2
@@ -145,3 +175,31 @@ def simulationWithoutDrug():
     """
 
     # TODO
+    maxBirthProb = 0.1
+    clearProb = 0.05
+    maxPop = 1000
+    num_test = 50
+    niter = 300
+    count_list = []
+
+    for _ in xrange( niter ):
+        count_list.append(0)
+
+    for _ in range( num_test ):
+        virus_list = []
+        for _ in range(100):
+            virus_list.append( SimpleVirus(  maxBirthProb , clearProb ) )
+
+        patient = SimplePatient( virus_list , maxPop )
+        for i in range( niter ):
+            count_list[i] += patient.update()
+    for i in xrange(len(count_list)):
+        count_list[i] /= num_test
+
+    pylab.plot( range(niter) , count_list , 'bo' )
+    pylab.xlabel( 'The evolution Time ' )
+    pylab.ylabel( 'Amount of viruse number ' )
+    pylab.title( "Evolution of viruses in Patient's body" )
+    pylab.show()
+
+simulationWithoutDrug()
