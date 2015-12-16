@@ -291,7 +291,8 @@ def simulationWithDrug( numViruses , maxPop , maxBirthProb , clearProb , resista
 # PROBLEM 3
 #        
 
-def simulationDelayedTreatment():
+def simulationDelayedTreatment( numViruses , maxPop , maxBirthProb , clearProb ,\
+        resistances , mutProb , numTrial , delay_time , cure_time ):
 
     """
     Runs simulations and make histograms for problem 5.
@@ -301,8 +302,30 @@ def simulationDelayedTreatment():
     150, 75, 0 timesteps (followed by an additional 150 timesteps of
     simulation).    
     """
+    final_account = 0
+    for _ in xrange( numTrial ):
+        viruses = []
+        for _ in xrange( numViruses ):
+            viruses.append( ResistantVirus( maxBirthProb , clearProb , resistances , mutProb ) )
 
-    # TODO
+        patient = Patient( viruses , maxPop )
+        for i in xrange( delay_time + cure_time ):
+            if i == delay_time:
+                #pass
+                patient.addPrescription( 'guttagonol' )
+            if i == ( delay_time +cure_time -1):
+                final_account += patient.update()
+            b=patient.update()
+    return float(final_account)/numTrial
+
+def plotDelayer():
+    final1 = simulationDelayedTreatment( 100 , 1000 , 0.1 , 0.05 , {'guttagonol':False} , 0.005 , 30 , 0 , 50 )
+    final2 = simulationDelayedTreatment( 100 , 1000 , 0.1 , 0.05 , {'guttagonol':False} , 0.005 , 30 , 75 , 50 )
+    final3 = simulationDelayedTreatment( 100 , 1000 , 0.1 , 0.05 , {'guttagonol':False} , 0.005 , 30 , 150 , 50 )
+    final4 = simulationDelayedTreatment( 100 , 1000 , 0.1 , 0.05 , {'guttagonol':False} , 0.005 , 30 , 300 , 50 )
+    print final1, final2, final3, final4
+plotDelayer()
+
 
 #
 # PROBLEM 4
