@@ -31,6 +31,10 @@ class Point(object):
 
 class County(Point):
     weights = pylab.array([1.0] * 14)
+
+    weights[2] = 0.
+    # poverty property is set to zero means we ignore this property
+    # when clustering the dataset
     
     # Override Point.distance to use County.weights to decide the
     # significance of each dimension
@@ -221,7 +225,7 @@ def test(points, k = 200, cutoff = 0.1):
 
         
 points = buildCountyPoints('counties.txt')
-random.seed(123)
+#random.seed(123)
 testPoints = random.sample(points, len(points)/10)
 
 
@@ -234,7 +238,38 @@ def graphRemovedErr(points, kvals = [25, 50, 75, 100, 125, 150], cutoff = 0.1):
     For details see Problem 1.
     """
 
-    # Your Code Here
+    (part1 , part2)= randomPartition( points , 0.8 )
+    training_error = []
+    holdout_error  = []
+    error_ratio    = []
+
+    for k in kvals:
+        error1 = 0.
+        error2 = 0.
+        ( cluster , maxDist ) = kmeans( part1 , k , cutoff , type( points[0] ) )
+        for i in range( k ):
+            for p in cluster[i].points:
+                error1 += (p.distance( cluster[i].getCentroid()))**2.
+
+        for p in part2:
+            miniDist = p.distance( cluster[0].getCentroid() )
+            for i in range( k ):
+                if p.distance( cluster[i].getCentroid() ) < miniDist:
+                    miniDist = p.distance( cluster[i].getCentroid() )
+            error2 += miniDist**2.
+
+        training_error.append( error1 )
+        holdout_error.append( 4*error2 )
+        error_ratio.append( error2/error1 )
+    pylab.plot( kvals , training_error , 'ro-' , linewidth=2.5 , label='Training Error' )
+    pylab.plot( kvals , holdout_error , 'bo-' , linewidth=2.5 , label = 'Holdout Error')
+    pylab.legend( loc = 'upper right')
+    pylab.xlabel('Number of K')
+    pylab.ylabel( 'Error Summation' )
+    pylab.show()
+
+#graphRemovedErr( points )
+        
 
 
 def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], cutoff = 0.1):
@@ -244,5 +279,16 @@ def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], c
     as described in Problem 3.
     """
 
-	# Your Code Here
+	part1, part2 = randomPartition( points , 0.8 )
+    
+    k = 25
+
+    average_poverty = []
+
+    cluster , maxDist = kmeans( part1 , k , cutoff , type( part1[0]) )
+
+    for i in range( k ):
+        for p in cluster[i].points:
+
+            #TO be continue
     
