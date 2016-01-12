@@ -269,8 +269,6 @@ def graphRemovedErr(points, kvals = [25, 50, 75, 100, 125, 150], cutoff = 0.1):
     pylab.show()
 
 #graphRemovedErr( points )
-        
-
 
 def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], cutoff = 0.1):
     """
@@ -278,17 +276,10 @@ def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], c
     appropriate values of k and graph the error in the resulting predictions,
     as described in Problem 3.
     """
+    part1, part2 = randomPartition( points , 0.8 )
 
-	part1, part2 = randomPartition( points , 0.8 )
-    
-    k = 25
-
-    average_poverty = []
-
-    cluster , maxDist = kmeans( part1 , k , cutoff , type( part1[0]) )
-
-    for i in range( k ):
-        for p in cluster[i].points:
-
-            #TO be continue
-    
+    for k in kvals:
+        cluster, maxDist = kmeans( part1 , k , cutoff , type(part1[0]) )
+        for p in part2:
+            miniDist = p.distance( cluster[0].getCentroid() )
+graphPredictionErr( points , 1 )
