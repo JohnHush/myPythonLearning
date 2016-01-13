@@ -278,8 +278,33 @@ def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], c
     """
     part1, part2 = randomPartition( points , 0.8 )
 
+    poverty_difference_list = []
+
     for k in kvals:
         cluster, maxDist = kmeans( part1 , k , cutoff , type(part1[0]) )
+        ave_poverty_list = []
+        poverty_difference = 0.
+        for index in range(k):
+            ave_poverty = 0.
+            for p in cluster[index].points:
+                ave_poverty += p.getOriginalAttrs()[dimension]
+            ave_poverty /= len(cluster[index].points)
+            ave_poverty_list.append( ave_poverty )
+
         for p in part2:
             miniDist = p.distance( cluster[0].getCentroid() )
-graphPredictionErr( points , 1 )
+            index = 0
+            for j in range(k):
+                if p.distance( cluster[j].getCentroid() ) < miniDist:
+                    miniDist = p.distance( cluster[j].getCentroid() )
+                    index = j
+            poverty_difference += ( p.getOriginalAttrs()[dimension] - ave_poverty_list[index] )**2.
+        #print poverty_difference
+        poverty_difference_list.append( poverty_difference )
+    print poverty_difference_list
+    pylab.plot( kvals , poverty_difference_list , 'ro-' , linewidth=2.5 )
+    pylab.xlabel( 'Number of K' )
+    pylab.ylabel( 'Square difference of the holdout dataset' )
+    pylab.show()
+
+graphPredictionErr( points , 2 )
