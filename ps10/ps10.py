@@ -5,6 +5,8 @@
 
 #Code shared across examples
 import pylab, random, string, copy, math
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Point(object):
     def __init__(self, name, originalAttrs, normalizedAttrs = None):
@@ -280,6 +282,17 @@ def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], c
 
     poverty_difference_list = []
 
+    x = []
+    for p in part1:
+        x.append( p.getOriginalAttrs()[2] )
+
+    x_np = np.array( x )
+
+    plt.hist( x_np , bins=50 )
+    plt.show()
+
+    assert False
+
     for k in kvals:
         cluster, maxDist = kmeans( part1 , k , cutoff , type(part1[0]) )
         ave_poverty_list = []
@@ -301,10 +314,27 @@ def graphPredictionErr(points, dimension, kvals = [25, 50, 75, 100, 125, 150], c
             poverty_difference += ( p.getOriginalAttrs()[dimension] - ave_poverty_list[index] )**2.
         #print poverty_difference
         poverty_difference_list.append( poverty_difference )
-    print poverty_difference_list
     pylab.plot( kvals , poverty_difference_list , 'ro-' , linewidth=2.5 )
     pylab.xlabel( 'Number of K' )
     pylab.ylabel( 'Square difference of the holdout dataset' )
     pylab.show()
 
-graphPredictionErr( points , 2 )
+def testGraphPoverty( points , cutoff =0.1 ):
+
+    ave_poverty_list = [0.]*25 
+
+    for itrial in range( 50 ):
+        cluster , maxDist = kmeans( points , 25 , cutoff , type( points[0] ) )
+
+        for index in range( 25 ):
+            ave_pov = 0.
+            for p in cluster[index].getPoints():
+                ave_pov += p.getOriginalAttrs()[2]
+            ave_pov /= float(len(cluster[index].getPoints()))
+            ave_poverty_list[index] += ave_pov
+
+    np_ave = np.array( ave_poverty_list )
+    plt.hist( np_ave , bins=25 )
+    plt.show()
+
+testGraphPoverty( points )
